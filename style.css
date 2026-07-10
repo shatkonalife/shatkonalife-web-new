@@ -1,0 +1,183 @@
+/* Reset & Base */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+        line-height: 1.6; 
+        color: #2d3436; 
+        background-color: #f8f9fa;
+    }
+
+    /* Navbar */
+    nav { 
+        display: flex; justify-content: space-between; padding: 20px 8%; 
+        background: white; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .logo { font-weight: 800; font-size: 1.8rem; color: #007bff; letter-spacing: -1px; }
+    .nav-links a { margin-left: 25px; text-decoration: none; color: #636e72; font-weight: 500; transition: color 0.3s; }
+    .nav-links a:hover { color: #007bff; }
+
+    /* Hero Section */
+    .hero { 
+        background: linear-gradient(135deg, #2c3e50, #007bff); 
+        color: white; padding: 100px 5%; text-align: center;
+    }
+    .hero h1 { font-size: 3rem; margin-bottom: 15px; }
+    .hero p { font-size: 1.2rem; margin-bottom: 30px; opacity: 0.9; }
+    .btn { padding: 15px 30px; border-radius: 8px; text-decoration: none; display: inline-block; margin: 10px; font-weight: 600; transition: transform 0.2s, background 0.3s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: #27ae60; color: white; }
+    .btn-secondary { background: white; color: #007bff; }
+
+    /* Dual Path Cards */
+    .dual-path { display: flex; gap: 30px; padding: 60px 8%; justify-content: center; flex-wrap: wrap; }
+    .card { 
+        background: white; padding: 40px; border-radius: 15px; width: 100%; max-width: 450px; 
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08); text-align: center; border-top: 5px solid #007bff;
+    }
+    .card h3 { font-size: 1.5rem; margin-bottom: 15px; }
+    .card p { margin-bottom: 20px; }
+
+    /* Mission */
+    .mission { 
+        background: #ffffff; margin: 0 8% 50px 8%; padding: 50px; 
+        border-radius: 15px; text-align: center; border: 1px solid #e1e1e1;
+    }
+
+    /* Footer */
+    footer { padding: 40px 8%; text-align: center; font-size: 0.75rem; color: #b2bec3; border-top: 1px solid #eee; }
+
+    /* Responsive adjustment */
+    @media (max-width: 768px) {
+        .hero h1 { font-size: 2rem; }
+        .dual-path { flex-direction: column; align-items: center; }
+    }
+.mission { 
+    background: #ffffff; 
+    margin: 50px 8%; 
+    padding: 50px; 
+    border-radius: 15px; 
+    border: 1px solid #e1e1e1;
+    
+    /* Applying the tricolour effect to the top instead, since the logo is now centered */
+    border-top: 8px solid;
+    border-image-source: linear-gradient(to right, #FF9933 33%, #ffffff 33%, #ffffff 66%, #138808 66%);
+    border-image-slice: 1;
+    text-align: center; /* This centers the content */
+}
+
+.mission-container { 
+    display: flex; 
+    flex-direction: column; /* Stacks the logo and text */
+    align-items: center;    /* Centers items horizontally */
+    gap: 20px; 
+}
+
+.mission-logo { 
+    width: 120px; 
+    height: auto; 
+    margin-bottom: 10px; /* Space between logo and headline */
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+.mission-text { 
+    max-width: 600px; /* Keeps the text readable */
+}
+footer { 
+    padding: 60px 8%; 
+    text-align: center; 
+    background: #f4f7f6;
+    border-top: 1px solid #e1e1e1;
+    color: #57606f;
+}
+
+footer p { 
+    margin-bottom: 10px; 
+}
+
+.legal-entities {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap; /* Wraps on mobile */
+    font-size: 0.8rem;
+    margin-top: 15px;
+}
+
+.legal-item {
+    border-right: 1px solid #ccc;
+    padding-right: 15px;
+}
+
+.legal-item:last-child {
+    border-right: none;
+}
+/* Experts Section Container */
+.experts-section {
+    padding: 60px 8%;
+    background-color: #ffffff;
+}
+
+.experts-section h2 {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #2c3e50;
+    font-size: 2rem;
+}
+
+/* Carousel/Grid Container */
+.carousel-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap; /* Allows wrapping on smaller screens */
+}
+
+/* Individual Expert Card */
+.card {
+    background: #ffffff;
+    border: 1px solid #e1e1e1;
+    border-radius: 12px;
+    overflow: hidden;
+    width: 280px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+    padding-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Image Styling */
+.card-img {
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+    background-color: #f4f7f6;
+}
+
+.card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures image fills container without stretching */
+}
+
+/* Text Styling within Card */
+.card h3 {
+    margin: 20px 0 5px 0;
+    color: #2D5A27; /* Matches Forest Green brand color */
+}
+
+.card p {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+/* Responsive adjustment for mobile */
+@media (max-width: 600px) {
+    .card {
+        width: 100%;
+        max-width: 320px;
+    }
+}
