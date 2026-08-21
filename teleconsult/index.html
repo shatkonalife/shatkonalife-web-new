@@ -183,12 +183,28 @@
 
         <div id="successBox" class="success-box">
             <h2 id="successTitle">Payment & Consultation Confirmed!</h2>
-            <p id="successDesc">Your payment was successful. We have reserved your slot, and a clinical coordinator will reach out via WhatsApp/Phone with your secure video link.</p>
+            <p id="successDesc">Your payment was successful and securely saved. We have reserved your slot, and a clinical coordinator will reach out via WhatsApp/Phone with your secure video link.</p>
             <p class="slot-highlight" id="confirmedSlotText">📌 Selected Slot</p>
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDK Setup & Booking Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXD3yyuKWNsn4bAZaLBrXucl_9Z-eauF0",
+            authDomain: "shatkonalife-saas.firebaseapp.com",
+            projectId: "shatkonalife-saas",
+            storageBucket: "shatkonalife-saas.firebasestorage.app",
+            messagingSenderId: "491921572098",
+            appId: "1:491921572098:web:2d3db9b80a48cb89e6421b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         const urlParams = new URLSearchParams(window.location.search);
         const lang = urlParams.get('lang') || 'en';
         const score = urlParams.get('score') || '0';
@@ -247,13 +263,13 @@
         document.getElementById('successDesc').innerText = t.successDesc;
 
         let selectedSlotValue = "";
-        function selectSlot(buttonElement, slotText) {
+        window.selectSlot = function(buttonElement, slotText) {
             document.querySelectorAll('.slot-button').forEach(btn => btn.classList.remove('selected'));
             buttonElement.classList.add('selected');
             selectedSlotValue = slotText;
         }
 
-        function handlePaymentAndBooking(event) {
+        window.handlePaymentAndBooking = function(event) {
             event.preventDefault();
             const name = document.getElementById('patientName').value;
             const phone = document.getElementById('patientPhone').value;
@@ -264,15 +280,33 @@
             }
 
             var options = {
-                "key": "rzp_test_TSUo0NHnSTTZTu", // Updated with your test key ID
-                "amount": 49900, // Amount is in paise (₹499 = 49900 paise)
+                "key": "rzp_test_TSUo0NHnSTTZTu",
+                "amount": 49900,
                 "currency": "INR",
                 "name": "Tanman Physiotherapy Clinic",
                 "description": "Teleconsultation Fee (" + vector + ")",
-                "handler": function (response) {
-                    document.getElementById('bookingForm').style.display = 'none';
-                    document.getElementById('successBox').style.display = 'block';
-                    document.getElementById('confirmedSlotText').innerText = "📌 " + selectedSlotValue + " | Payment ID: " + response.razorpay_payment_id;
+                "handler": async function (response) {
+                    try {
+                        // Save booking directly to Firestore upon successful payment
+                        await addDoc(collection(db, "teleconsult_bookings"), {
+                            name: name,
+                            phone: phone,
+                            score: score,
+                            vector: vector,
+                            slot: selectedSlotValue,
+                            amount: 499,
+                            paymentId: response.razorpay_payment_id,
+                            status: "Confirmed",
+                            createdAt: serverTimestamp()
+                        });
+
+                        document.getElementById('bookingForm').style.display = 'none';
+                        document.getElementById('successBox').style.display = 'block';
+                        document.getElementById('confirmedSlotText').innerText = "📌 " + selectedSlotValue + " | Payment ID: " + response.razorpay_payment_id;
+                    } catch (e) {
+                        console.error("Error saving booking to Firestore: ", e);
+                        alert("Payment successful, but there was an error logging your booking. Please contact support immediately with Payment ID: " + response.razorpay_payment_id);
+                    }
                 },
                 "prefill": {
                     "name": name,
