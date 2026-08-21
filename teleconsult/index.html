@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shatkona Life - Teleconsultation Booking</title>
+    <!-- Include Razorpay Checkout Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: #F8F9FA;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .card {
+            background-color: #FFFFFF;
+            max-width: 550px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+            margin: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            color: #1A5276;
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+        p {
+            font-size: 14px;
+            color: #555555;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        .metrics-box {
+            background-color: #EBF5FB;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2980B9;
+        }
+        .metric-item {
+            margin: 4px 0;
+            font-size: 14px;
+            color: #2C3E50;
+        }
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #BDC3C7;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        .slot-heading {
+            font-size: 15px;
+            color: #34495E;
+            margin-top: 5px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .slots-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .slot-button {
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #D5D8DC;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: left;
+            font-weight: 500;
+            background-color: #F2F4F4;
+            color: #333333;
+            transition: all 0.2s;
+        }
+        .slot-button.selected {
+            background-color: #1B4F72;
+            color: #FFFFFF;
+            border-color: #1B4F72;
+        }
+        .submit-button {
+            margin-top: 15px;
+            background-color: #27AE60;
+            color: #FFFFFF;
+            padding: 14px;
+            border-radius: 6px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .success-box {
+            background-color: #D4EFDF;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #A9DFBF;
+            display: none;
+        }
+        .success-box h2 {
+            color: #145A32;
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .success-box p {
+            color: #1E8449;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        .slot-highlight {
+            font-weight: bold;
+            color: #145A32;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1 id="title">Clinical Teleconsultation Booking</h1>
+        <p id="subtitle">Based on your assessment score, our clinical team recommends a virtual consultation to review your structural and mechanical load vectors.</p>
+
+        <!-- Assessment Data Card -->
+        <div class="metrics-box">
+            <p class="metric-item"><strong id="scoreLabel">Total Load Score:</strong> <span id="displayScore">0</span> / 180</p>
+            <p class="metric-item"><strong id="vectorLabel">Primary Focus Vector:</strong> <span id="displayVector">GENERAL</span></p>
+            <p class="metric-item"><strong>Consultation Fee:</strong> ₹499 (Inclusive of taxes)</p>
+        </div>
+
+        <form id="bookingForm" class="form" onsubmit="handlePaymentAndBooking(event)">
+            <div>
+                <input type="text" id="patientName" placeholder="Enter your full name" required>
+            </div>
+            <div>
+                <input type="tel" id="patientPhone" placeholder="Enter your phone number" required>
+            </div>
+
+            <div class="slot-heading" id="slotTitle">Select an Available Time Slot:</div>
+            <div class="slots-container" id="slotsContainer">
+                <button type="button" class="slot-button" onclick="selectSlot(this, 'Today, 04:00 PM - 04:30 PM')">Today, 04:00 PM - 04:30 PM</button>
+                <button type="button" class="slot-button" onclick="selectSlot(this, 'Tomorrow, 10:30 AM - 11:00 AM')">Tomorrow, 10:30 AM - 11:00 AM</button>
+                <button type="button" class="slot-button" onclick="selectSlot(this, 'Tomorrow, 03:00 PM - 03:30 PM')">Tomorrow, 03:00 PM - 03:30 PM</button>
+            </div>
+
+            <button type="submit" class="submit-button" id="bookBtn">Proceed to Pay & Book (₹499)</button>
+        </form>
+
+        <div id="successBox" class="success-box">
+            <h2 id="successTitle">Payment & Consultation Confirmed!</h2>
+            <p id="successDesc">Your payment was successful. We have reserved your slot, and a clinical coordinator will reach out via WhatsApp/Phone with your secure video link.</p>
+            <p class="slot-highlight" id="confirmedSlotText">📌 Selected Slot</p>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const lang = urlParams.get('lang') || 'en';
+        const score = urlParams.get('score') || '0';
+        const vector = urlParams.get('vector') || 'GENERAL';
+
+        document.getElementById('displayScore').innerText = score;
+        document.getElementById('displayVector').innerText = vector;
+
+        const content = {
+            en: {
+                title: "Clinical Teleconsultation Booking",
+                subtitle: "Based on your assessment score, our clinical team recommends a virtual consultation to review your structural and mechanical load vectors.",
+                scoreLabel: "Total Load Score:",
+                vectorLabel: "Primary Focus Vector:",
+                slotTitle: "Select an Available Time Slot:",
+                namePlaceholder: "Enter your full name",
+                phonePlaceholder: "Enter your phone number",
+                bookBtn: "Proceed to Pay & Book (₹499)",
+                successTitle: "Payment & Consultation Confirmed!",
+                successDesc: "Your payment was successful. We have reserved your slot, and a clinical coordinator will reach out via WhatsApp/Phone with your secure video link."
+            },
+            as: {
+                title: "ক্লিনিকাল টেলিকনছালটেচন বুকিং আৰু পেমেন্ট",
+                subtitle: "আপোনাৰ মূল্যায়ন স্ক'ৰৰ ওপৰত ভিত্তি কৰি, আমাৰ চিকিৎসালয় দলে আপোনাৰ পৰামৰ্শৰ বাবে এক ভাৰ্চুৱেল পৰামৰ্শৰ পৰামৰ্শ দিছে।",
+                scoreLabel: "মুঠ স্ক'ৰ:",
+                vectorLabel: "প্ৰধান লক্ষ্য ভেক্তৰ:",
+                slotTitle: "উপলব্ধ সময় বাছনি কৰক:",
+                namePlaceholder: "আপোনাৰ সম্পূৰ্ণ নাম লিখক",
+                phonePlaceholder: "আপোনাৰ ফোন নম্বৰ লিখক",
+                bookBtn: "পেমেন্ট কৰি নিশ্চিত কৰক (₹499)",
+                successTitle: "পেমেন্ট আৰু পৰামৰ্শ সফলভাৱে নিশ্চিত হ’ল!",
+                successDesc: "আপোনাৰ পেমেন্ট সফল হৈছে। আমাৰ ক্লিনিকাল দলটোৱে আপোনাৰ ফোন নম্বৰলৈ নিৰাপদ ভিডিঅ’ লিংক প্ৰেৰণ কৰিব।"
+            }
+        };
+
+        const t = content[lang] || content.en;
+
+        document.getElementById('title').innerText = t.title;
+        document.getElementById('subtitle').innerText = t.subtitle;
+        document.getElementById('scoreLabel').innerText = t.scoreLabel;
+        document.getElementById('vectorLabel').innerText = t.vectorLabel;
+        document.getElementById('slotTitle').innerText = t.slotTitle;
+        document.getElementById('patientName').placeholder = t.namePlaceholder;
+        document.getElementById('patientPhone').placeholder = t.phonePlaceholder;
+        document.getElementById('bookBtn').innerText = t.bookBtn;
+        document.getElementById('successTitle').innerText = t.successTitle;
+        document.getElementById('successDesc').innerText = t.successDesc;
+
+        let selectedSlotValue = "";
+        function selectSlot(buttonElement, slotText) {
+            document.querySelectorAll('.slot-button').forEach(btn => btn.classList.remove('selected'));
+            buttonElement.classList.add('selected');
+            selectedSlotValue = slotText;
+        }
+
+        function handlePaymentAndBooking(event) {
+            event.preventDefault();
+            const name = document.getElementById('patientName').value;
+            const phone = document.getElementById('patientPhone').value;
+
+            if (!selectedSlotValue) {
+                alert(lang === 'as' ? "অনুগ্ৰহ কৰি এটা সময় বাছনি কৰক।" : "Please select an available time slot.");
+                return;
+            }
+
+            // Razorpay Integration Options
+            var options = {
+                "key": "YOUR_RAZORPAY_KEY_ID", // Replace with your live or test Razorpay Key ID
+                "amount": 49900, // Amount is in currency subunits (e.g. paise for INR, so 49900 = ₹499)
+                "currency": "INR",
+                "name": "Shatkona Life",
+                "description": "Teleconsultation Fee (" + vector + ")",
+                "handler": function (response) {
+                    // Payment successful callback
+                    document.getElementById('bookingForm').style.display = 'none';
+                    document.getElementById('successBox').style.display = 'block';
+                    document.getElementById('confirmedSlotText').innerText = "📌 " + selectedSlotValue + " | Payment ID: " + response.razorpay_payment_id;
+                    
+                    // TODO: Send payment ID, name, phone, slot, and score to your server/Firebase database here
+                },
+                "prefill": {
+                    "name": name,
+                    "contact": phone
+                },
+                "theme": {
+                    "color": "#1A5276"
+                }
+            };
+            
+            var rzp1 = new Razorpay(options);
+            rzp1.open();
+        }
+    </script>
+</body>
+</html>
