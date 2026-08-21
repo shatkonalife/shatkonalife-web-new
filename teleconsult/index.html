@@ -290,43 +290,44 @@
                 "currency": "INR",
                 "name": "Tanman Physiotherapy Clinic",
                 "description": "Teleconsultation Fee (" + vector + ")",
-                "handler": async function (response) {
-                    try {
-                        // 1. Save booking to Firestore collection 'teleconsult_bookings'
-                        await addDoc(collection(db, "teleconsult_bookings"), {
-                            name: name,
-                            phone: phone,
-                            score: score,
-                            vector: vector,
-                            slot: selectedSlotValue,
-                            amount: 499,
-                            paymentId: response.razorpay_payment_id,
-                            status: "Confirmed",
-                            createdAt: serverTimestamp()
-                        });
+               "handler": async function (response) {
+    try {
+        // 1. Save booking to Firestore collection 'teleconsult_bookings'
+        await addDoc(collection(db, "teleconsult_bookings"), {
+            name: name,
+            phone: phone,
+            score: score,
+            vector: vector,
+            slot: selectedSlotValue,
+            amount: 499,
+            paymentId: response.razorpay_payment_id,
+            status: "Confirmed",
+            createdAt: serverTimestamp()
+        });
 
-                        // 2. Build WhatsApp redirect link for clinic number 9395503196
-                        const clinicWhatsApp = "919395503196";
-                        const message = encodeURIComponent(
-                            `*New Teleconsultation Booking!* 🏥\n\n` +
-                            `👤 Name: ${name}\n` +
-                            `📞 Phone: ${phone}\n` +
-                            `📌 Slot: ${selectedSlotValue}\n` +
-                            `⚡ Vector: ${vector} (Score: ${score})\n` +
-                            `💳 Payment ID: ${response.razorpay_payment_id}`
-                        );
-                        
-                        document.getElementById('whatsappAlertBtn').href = `https://wa.me/${clinicWhatsApp}?text=${message}`;
+        // 2. Automatically trigger WhatsApp alert to clinic number 9395503196
+        const clinicWhatsApp = "919395503196";
+        const message = encodeURIComponent(
+            `*New Teleconsultation Booking!* 🏥\n\n` +
+            `👤 Name: ${name}\n` +
+            `📞 Phone: ${phone}\n` +
+            `📌 Slot: ${selectedSlotValue}\n` +
+            `⚡ Vector: ${vector} (Score: ${score})\n` +
+            `💳 Payment ID: ${response.razorpay_payment_id}`
+        );
 
-                        // 3. Update view UI
-                        document.getElementById('bookingForm').style.display = 'none';
-                        document.getElementById('successBox').style.display = 'block';
-                        document.getElementById('confirmedSlotText').innerText = "📌 " + selectedSlotValue + " | Payment ID: " + response.razorpay_payment_id;
-                    } catch (e) {
-                        console.error("Error saving booking to Firestore: ", e);
-                        alert("Payment successful, but there was an error logging your booking. Please contact support immediately with Payment ID: " + response.razorpay_payment_id);
-                    }
-                },
+        // Opens WhatsApp automatically in a new tab with the pre-filled message
+        window.open(`https://wa.me/${clinicWhatsApp}?text=${message}`, '_blank');
+
+        // 3. Update view UI for the user
+        document.getElementById('bookingForm').style.display = 'none';
+        document.getElementById('successBox').style.display = 'block';
+        document.getElementById('confirmedSlotText').innerText = "📌 " + selectedSlotValue + " | Payment ID: " + response.razorpay_payment_id;
+    } catch (e) {
+        console.error("Error saving booking to Firestore: ", e);
+        alert("Payment successful, but there was an error logging your booking. Please contact support immediately with Payment ID: " + response.razorpay_payment_id);
+    }
+},
                 "prefill": {
                     "name": name,
                     "contact": phone
