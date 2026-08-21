@@ -37,6 +37,15 @@
             font-size: 14px;
             color: #555555;
             line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        .fulfillment-notice {
+            font-size: 12px;
+            color: #2980B9;
+            font-weight: 600;
+            background-color: #EBF5FB;
+            padding: 8px 12px;
+            border-radius: 6px;
             margin-bottom: 20px;
         }
         .metrics-box {
@@ -137,6 +146,11 @@
         <h1 id="title">Clinical Teleconsultation Booking</h1>
         <p id="subtitle">Based on your assessment score, our clinical team recommends a virtual consultation to review your structural and mechanical load vectors.</p>
 
+        <!-- Fulfillment Notice -->
+        <div class="fulfillment-notice" id="fulfillmentText">
+            🏥 Teleconsultation services fulfilled by Tanman Physiotherapy Clinic.
+        </div>
+
         <!-- Assessment Data Card -->
         <div class="metrics-box">
             <p class="metric-item"><strong id="scoreLabel">Total Load Score:</strong> <span id="displayScore">0</span> / 180</p>
@@ -161,7 +175,6 @@
 
             <button type="submit" class="submit-button" id="bookBtn">Proceed to Pay & Book (₹499)</button>
 
-            <!-- Disclaimer Notice Added Here -->
             <p id="disclaimerText" style="font-size: 12px; color: #666; text-align: center; margin-top: 10px; margin-bottom: 0;">
                 By proceeding, you agree to our 
                 <a href="/disclaimer.html" target="_blank" style="color: #2980B9; text-decoration: underline;">Teleconsultation Medical Disclaimer</a>.
@@ -188,6 +201,7 @@
             en: {
                 title: "Clinical Teleconsultation Booking",
                 subtitle: "Based on your assessment score, our clinical team recommends a virtual consultation to review your structural and mechanical load vectors.",
+                fulfillmentText: "🏥 Teleconsultation services fulfilled by Tanman Physiotherapy Clinic.",
                 scoreLabel: "Total Load Score:",
                 vectorLabel: "Primary Focus Vector:",
                 feeLabel: "Consultation Fee:",
@@ -201,7 +215,8 @@
             },
             as: {
                 title: "ক্লিনিকাল টেলিকনসল্টেচন বুকিং",
-                subtitle: "আপোনাৰ মূল্যায়ন স্ক'ৰৰ ওপਰত ভিত্তি কৰি, আমাৰ চিকিৎসালয় দলে আপোনাৰ গঠনগত আৰু যান্ত্ৰিক ল'ড ভেক্তৰসমূহ পৰীক্ষা কৰিবলৈ এক ভাৰ্চুৱেল পৰামৰ্শৰ পৰামৰ্শ দিছে।",
+                subtitle: "আপোনাৰ মূল্যায়ন স্ক'ৰৰ ওপৰত ভিত্তি কৰি, আমাৰ চিকিৎসালয় দলে আপোনাৰ গঠনগত আৰু যান্ত্ৰিক ল'ড ভেক্তৰসমূহ পৰীক্ষা কৰিবলৈ এক ভাৰ্চুৱেল পৰামৰ্শৰ পৰামৰ্শ দিছে।",
+                fulfillmentText: "🏥 টেলিকনসল্টেচন সেৱাসমূহ তানমান ফিজিঅ'থেৰাপি ক্লিনিকৰ দ্বাৰা পৰিচালিত।",
                 scoreLabel: "মুঠ ল'ড স্ক'ৰ:",
                 vectorLabel: "প্ৰধান লক্ষ্য ভেক্তৰ:",
                 feeLabel: "পৰামৰ্শ মাছুল:",
@@ -219,6 +234,7 @@
 
         document.getElementById('title').innerText = t.title;
         document.getElementById('subtitle').innerText = t.subtitle;
+        document.getElementById('fulfillmentText').innerText = t.fulfillmentText;
         document.getElementById('scoreLabel').innerText = t.scoreLabel;
         document.getElementById('vectorLabel').innerText = t.vectorLabel;
         document.getElementById('feeLabel').innerText = t.feeLabel;
@@ -248,10 +264,10 @@
             }
 
             var options = {
-                "key": "YOUR_RAZORPAY_KEY_ID", 
-                "amount": 499, 
+                "key": "rzp_test_TSUo0NHnSTTZTu", // Updated with your test key ID
+                "amount": 49900, // Amount is in paise (₹499 = 49900 paise)
                 "currency": "INR",
-                "name": "Shatkona Life",
+                "name": "Tanman Physiotherapy Clinic",
                 "description": "Teleconsultation Fee (" + vector + ")",
                 "handler": function (response) {
                     document.getElementById('bookingForm').style.display = 'none';
@@ -266,7 +282,7 @@
                     "color": "#1A5276"
                 }
             };
-            
+
             var rzp1 = new Razorpay(options);
             rzp1.open();
         }
