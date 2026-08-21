@@ -141,7 +141,7 @@
         <div class="metrics-box">
             <p class="metric-item"><strong id="scoreLabel">Total Load Score:</strong> <span id="displayScore">0</span> / 180</p>
             <p class="metric-item"><strong id="vectorLabel">Primary Focus Vector:</strong> <span id="displayVector">GENERAL</span></p>
-            <p class="metric-item"><strong>Consultation Fee:</strong> ₹499 (Inclusive of taxes)</p>
+            <p class="metric-item"><strong id="feeLabel">Consultation Fee:</strong> ₹499 (Inclusive of taxes)</p>
         </div>
 
         <form id="bookingForm" class="form" onsubmit="handlePaymentAndBooking(event)">
@@ -160,6 +160,12 @@
             </div>
 
             <button type="submit" class="submit-button" id="bookBtn">Proceed to Pay & Book (₹499)</button>
+
+            <!-- Disclaimer Notice Added Here -->
+            <p id="disclaimerText" style="font-size: 12px; color: #666; text-align: center; margin-top: 10px; margin-bottom: 0;">
+                By proceeding, you agree to our 
+                <a href="/disclaimer.html" target="_blank" style="color: #2980B9; text-decoration: underline;">Teleconsultation Medical Disclaimer</a>.
+            </p>
         </form>
 
         <div id="successBox" class="success-box">
@@ -184,24 +190,28 @@
                 subtitle: "Based on your assessment score, our clinical team recommends a virtual consultation to review your structural and mechanical load vectors.",
                 scoreLabel: "Total Load Score:",
                 vectorLabel: "Primary Focus Vector:",
+                feeLabel: "Consultation Fee:",
                 slotTitle: "Select an Available Time Slot:",
                 namePlaceholder: "Enter your full name",
                 phonePlaceholder: "Enter your phone number",
                 bookBtn: "Proceed to Pay & Book (₹499)",
+                disclaimerText: 'By proceeding, you agree to our <a href="/disclaimer.html" target="_blank" style="color: #2980B9; text-decoration: underline;">Teleconsultation Medical Disclaimer</a>.',
                 successTitle: "Payment & Consultation Confirmed!",
                 successDesc: "Your payment was successful. We have reserved your slot, and a clinical coordinator will reach out via WhatsApp/Phone with your secure video link."
             },
             as: {
-                title: "ক্লিনিকাল টেলিকনছালটেচন বুকিং আৰু পেমেন্ট",
-                subtitle: "আপোনাৰ মূল্যায়ন স্ক'ৰৰ ওপৰত ভিত্তি কৰি, আমাৰ চিকিৎসালয় দলে আপোনাৰ পৰামৰ্শৰ বাবে এক ভাৰ্চুৱেল পৰামৰ্শৰ পৰামৰ্শ দিছে।",
-                scoreLabel: "মুঠ স্ক'ৰ:",
+                title: "ক্লিনিকাল টেলিকনসল্টেচন বুকিং",
+                subtitle: "আপোনাৰ মূল্যায়ন স্ক'ৰৰ ওপਰত ভিত্তি কৰি, আমাৰ চিকিৎসালয় দলে আপোনাৰ গঠনগত আৰু যান্ত্ৰিক ল'ড ভেক্তৰসমূহ পৰীক্ষা কৰিবলৈ এক ভাৰ্চুৱেল পৰামৰ্শৰ পৰামৰ্শ দিছে।",
+                scoreLabel: "মুঠ ল'ড স্ক'ৰ:",
                 vectorLabel: "প্ৰধান লক্ষ্য ভেক্তৰ:",
+                feeLabel: "পৰামৰ্শ মাছুল:",
                 slotTitle: "উপলব্ধ সময় বাছনি কৰক:",
                 namePlaceholder: "আপোনাৰ সম্পূৰ্ণ নাম লিখক",
                 phonePlaceholder: "আপোনাৰ ফোন নম্বৰ লিখক",
-                bookBtn: "পেমেন্ট কৰি নিশ্চিত কৰক (₹499)",
-                successTitle: "পেমেন্ট আৰু পৰামৰ্শ সফলভাৱে নিশ্চিত হ’ল!",
-                successDesc: "আপোনাৰ পেমেন্ট সফল হৈছে। আমাৰ ক্লিনিকাল দলটোৱে আপোনাৰ ফোন নম্বৰলৈ নিৰাপদ ভিডিঅ’ লিংক প্ৰেৰণ কৰিব।"
+                bookBtn: "পেমেন্ট কৰি বুক কৰক (₹499)",
+                disclaimerText: 'আগবাঢ়ি যোৱাৰ দ্বাৰা, আপুনি আমাৰ <a href="/disclaimer.html" target="_blank" style="color: #2980B9; text-decoration: underline;">টেলিকনসল্টেচন চিকিৎসা স্বীকাৰোক্তি (Disclaimer)</a> ত সন্মতি জনাইছে।',
+                successTitle: "পেমেন্ট আৰু পৰামৰ্শ নিশ্চিত হ’ল!",
+                successDesc: "আপোনাৰ পেমেন্ট সফল হৈছে। আমাৰ ক্লিনিকাল দলটোৱে আপোনাৰ স্লট সংৰক্ষণ কৰিছে আৰু WhatsApp/ফোনৰ জৰিয়তে নিৰাপদ ভিডিঅ’ লিংক প্ৰেৰণ কৰিব।"
             }
         };
 
@@ -211,10 +221,12 @@
         document.getElementById('subtitle').innerText = t.subtitle;
         document.getElementById('scoreLabel').innerText = t.scoreLabel;
         document.getElementById('vectorLabel').innerText = t.vectorLabel;
+        document.getElementById('feeLabel').innerText = t.feeLabel;
         document.getElementById('slotTitle').innerText = t.slotTitle;
         document.getElementById('patientName').placeholder = t.namePlaceholder;
         document.getElementById('patientPhone').placeholder = t.phonePlaceholder;
         document.getElementById('bookBtn').innerText = t.bookBtn;
+        document.getElementById('disclaimerText').innerHTML = t.disclaimerText;
         document.getElementById('successTitle').innerText = t.successTitle;
         document.getElementById('successDesc').innerText = t.successDesc;
 
@@ -231,24 +243,20 @@
             const phone = document.getElementById('patientPhone').value;
 
             if (!selectedSlotValue) {
-                alert(lang === 'as' ? "অনুগ্ৰহ কৰি এটা সময় বাছনি কৰক।" : "Please select an available time slot.");
+                alert(lang === 'as' ? "অনুগ্ৰহ কৰি এটা সময় বাছনি কৰক।" : "Please select an available time slot.");
                 return;
             }
 
-            // Razorpay Integration Options
             var options = {
-                "key": "YOUR_RAZORPAY_KEY_ID", // Replace with your live or test Razorpay Key ID
-                "amount": 49900, // Amount is in currency subunits (e.g. paise for INR, so 49900 = ₹499)
+                "key": "YOUR_RAZORPAY_KEY_ID", 
+                "amount": 499, 
                 "currency": "INR",
                 "name": "Shatkona Life",
                 "description": "Teleconsultation Fee (" + vector + ")",
                 "handler": function (response) {
-                    // Payment successful callback
                     document.getElementById('bookingForm').style.display = 'none';
                     document.getElementById('successBox').style.display = 'block';
                     document.getElementById('confirmedSlotText').innerText = "📌 " + selectedSlotValue + " | Payment ID: " + response.razorpay_payment_id;
-                    
-                    // TODO: Send payment ID, name, phone, slot, and score to your server/Firebase database here
                 },
                 "prefill": {
                     "name": name,
