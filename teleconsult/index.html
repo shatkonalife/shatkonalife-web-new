@@ -183,8 +183,13 @@
 
         <div id="successBox" class="success-box">
             <h2 id="successTitle">Payment & Consultation Confirmed!</h2>
-            <p id="successDesc">Your payment was successful and securely saved. We have reserved your slot, and a clinical coordinator will reach out via WhatsApp/Phone with your secure video link.</p>
+            <p id="successDesc">Your payment was successful and securely saved. Click below to notify our clinic coordinator instantly on WhatsApp.</p>
             <p class="slot-highlight" id="confirmedSlotText">📌 Selected Slot</p>
+            
+            <!-- Direct WhatsApp Alert Button -->
+            <a id="whatsappAlertBtn" href="#" target="_blank" style="display: inline-block; background-color: #25D366; color: white; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 10px;">
+                💬 Send Booking Details to Clinic WhatsApp
+            </a>
         </div>
     </div>
 
@@ -227,7 +232,7 @@
                 bookBtn: "Proceed to Pay & Book (₹499)",
                 disclaimerText: 'By proceeding, you agree to our <a href="/disclaimer.html" target="_blank" style="color: #2980B9; text-decoration: underline;">Teleconsultation Medical Disclaimer</a>.',
                 successTitle: "Payment & Consultation Confirmed!",
-                successDesc: "Your payment was successful. We have reserved your slot, and a clinical coordinator will reach out via WhatsApp/Phone with your secure video link."
+                successDesc: "Your payment was successful. Click below to notify our clinic coordinator instantly on WhatsApp."
             },
             as: {
                 title: "ক্লিনিকাল টেলিকনসল্টেচন বুকিং",
@@ -242,7 +247,7 @@
                 bookBtn: "পেমেন্ট কৰি বুক কৰক (₹499)",
                 disclaimerText: 'আগবাঢ়ি যোৱাৰ দ্বাৰা, আপুনি আমাৰ <a href="/disclaimer.html" target="_blank" style="color: #2980B9; text-decoration: underline;">টেলিকনসল্টেচন চিকিৎসা স্বীকাৰোক্তি (Disclaimer)</a> ত সন্মতি জনাইছে।',
                 successTitle: "পেমেন্ট আৰু পৰামৰ্শ নিশ্চিত হ’ল!",
-                successDesc: "আপোনাৰ পেমেন্ট সফল হৈছে। আমাৰ ক্লিনিকাল দলটোৱে আপোনাৰ স্লট সংৰক্ষণ কৰিছে আৰু WhatsApp/ফোনৰ জৰিয়তে নিৰাপদ ভিডিঅ’ লিংক প্ৰেৰণ কৰিব।"
+                successDesc: "আপোনাৰ পেমেন্ট সফল হৈছে। তলত ক্লিক কৰি WhatsApp যোগে আমাৰ ক্লিনিকলৈ বিৱৰণ পঠিয়াওক।"
             }
         };
 
@@ -287,7 +292,7 @@
                 "description": "Teleconsultation Fee (" + vector + ")",
                 "handler": async function (response) {
                     try {
-                        // Save booking directly to Firestore upon successful payment
+                        // 1. Save booking to Firestore collection 'teleconsult_bookings'
                         await addDoc(collection(db, "teleconsult_bookings"), {
                             name: name,
                             phone: phone,
@@ -300,6 +305,20 @@
                             createdAt: serverTimestamp()
                         });
 
+                        // 2. Build WhatsApp redirect link for clinic number 9395503196
+                        const clinicWhatsApp = "919395503196";
+                        const message = encodeURIComponent(
+                            `*New Teleconsultation Booking!* 🏥\n\n` +
+                            `👤 Name: ${name}\n` +
+                            `📞 Phone: ${phone}\n` +
+                            `📌 Slot: ${selectedSlotValue}\n` +
+                            `⚡ Vector: ${vector} (Score: ${score})\n` +
+                            `💳 Payment ID: ${response.razorpay_payment_id}`
+                        );
+                        
+                        document.getElementById('whatsappAlertBtn').href = `https://wa.me/${clinicWhatsApp}?text=${message}`;
+
+                        // 3. Update view UI
                         document.getElementById('bookingForm').style.display = 'none';
                         document.getElementById('successBox').style.display = 'block';
                         document.getElementById('confirmedSlotText').innerText = "📌 " + selectedSlotValue + " | Payment ID: " + response.razorpay_payment_id;
