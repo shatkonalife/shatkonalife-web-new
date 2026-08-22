@@ -8,29 +8,64 @@
     <link rel="stylesheet" href="style.css?v=1.1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
+        .site-nav { position: sticky; top: 0; background: #ffffff; border-bottom: 1px solid #eaeaea; z-index: 1000; }
+        .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; }
         .logo img { max-height: 40px; width: auto; display: block; }
-        @media(max-width:768px){nav{display:flex;flex-direction:column;align-items:center;padding:15px;gap:12px;}
-        nav .logo{margin-bottom:5px;}
-        nav .logo img{max-height:35px;width:auto;display:block;}
-        nav .nav-links{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 14px;text-align:center;}
-        nav .nav-links a{font-size:13px;padding:4px 8px;background-color:#f1f3f5;border-radius:4px;text-decoration:none;color:#333;}}
+        
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a { text-decoration: none; color: #333; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: #2980B9; }
+
+        /* Hamburger Toggle Styles */
+        .menu-toggle { display: none; background: none; border: none; cursor: pointer; padding: 5px; }
+        .menu-toggle span { display: block; width: 25px; height: 3px; background: #333; margin: 5px 0; transition: 0.3s; }
+
+        @media(max-width: 768px) {
+            .menu-toggle { display: block; }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                background: #ffffff;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                padding: 20px;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.05);
+                border-bottom: 1px solid #eaeaea;
+                text-align: center;
+                gap: 15px;
+            }
+            .site-nav.active .nav-links { display: flex; }
+            .nav-links a { font-size: 15px; padding: 8px 0; width: 100%; border-bottom: 1px solid #f8f9fa; }
+        }
     </style>
 </head>
 <body>
 
     <!-- Unified Navigation Bridge -->
-    <nav>
-        <div class="logo">
-            <a href="/"><img src="assets/images/logo.png" alt="ShatkonaLife Logo"></a>
-        </div>
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="https://www.somaticbharat.org" target="_blank">Take the Quiz</a>
-            <a href="/teleconsult/">Teleconsultation</a>
-            <a href="/app.html">App Waitlist</a>
-            <a href="/shatkonalife-center.html">Clinical Center</a>
-            <a href="specialists.html">Specialists</a>
-            <a href="#contact">Contact</a>
+    <nav class="site-nav">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="/"><img src="assets/images/logo.png" alt="ShatkonaLife Logo"></a>
+            </div>
+            
+            <!-- Mobile Menu Toggle Button -->
+            <button class="menu-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.site-nav').classList.toggle('active')">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="https://www.somaticbharat.org" target="_blank">Take the Quiz</a>
+                <a href="/teleconsult/">Teleconsultation</a>
+                <a href="/app">App Waitlist</a>
+                <a href="/shatkonalife-center.html">Clinical Center</a>
+                <a href="specialists.html">Specialists</a>
+                <a href="#contact">Contact</a>
+            </div>
         </div>
     </nav>
 
@@ -47,7 +82,7 @@
         <div class="card">
             <h3>Shatkona App Waitlist</h3>
             <p>Get early access to our upcoming digital app ecosystem for nervous system regulation and somatic self-care tools.</p>
-            <a href="/app.html" class="btn btn-secondary">Join App Waitlist</a>
+            <a href="/app" class="btn btn-secondary">Join App Waitlist</a>
         </div>
 
         <!-- 2. Teleconsultation Card -->
@@ -92,6 +127,7 @@
         <p>Have questions or need assistance? Reach out to our team directly:</p>
         <p><strong>Email:</strong> <a href="mailto:support@shatkonalife.com">support@shatkonalife.com</a></p>
         <p><strong>WhatsApp / Phone:</strong> <a href="https://wa.me/919395503196" target="_blank">+91 93955 03196</a></p>
+        <p style="margin-top: 15px;"><a href="/app" style="color: #2980B9; text-decoration: none; font-weight: 600;">Check out the App Waitlist &rarr;</a></p>
     </section>
 
     <!-- Unified Footer -->
@@ -100,7 +136,8 @@
             <!-- Razorpay Compliance Links -->
             <a href="/privacy.html">Privacy Policy</a> | 
             <a href="/terms.html">Terms of Service</a> | 
-            <a href="/refund.html">Refund Policy</a>
+            <a href="/refund.html">Refund Policy</a> | 
+            <a href="/app">App Waitlist</a>
         </div>
 
         <div class="legal-entities">
