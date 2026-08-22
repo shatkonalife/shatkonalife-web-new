@@ -72,6 +72,7 @@
             border: 1px solid #BDC3C7;
             font-size: 15px;
             box-sizing: border-box;
+            background-color: #fff;
         }
         .slot-heading {
             font-size: 15px;
@@ -80,7 +81,6 @@
             margin-bottom: 8px;
             font-weight: bold;
         }
-        /* Styles for dynamic 2-month calendar slots */
         .slots-grid { 
             display: flex; 
             flex-wrap: wrap; 
@@ -109,6 +109,9 @@
             color: #888888; 
             cursor: not-allowed; 
             text-decoration: line-through; 
+        }
+        .slot-btn:hover:not(:disabled) {
+            background-color: #D5D8DC;
         }
         .submit-button {
             margin-top: 15px;
@@ -154,12 +157,10 @@
         <h1 id="title">Clinical Teleconsultation Booking</h1>
         <p id="subtitle">Based on your assessment score, our clinical team recommends a virtual consultation to review your structural and mechanical load vectors.</p>
 
-        <!-- Fulfillment Notice -->
         <div class="fulfillment-notice" id="fulfillmentText">
             🏥 Teleconsultation services fulfilled via Fasciamax Shatvayu Pvt Ltd Partner Network.
         </div>
 
-        <!-- Assessment Data Card -->
         <div class="metrics-box">
             <p class="metric-item"><strong id="scoreLabel">Total Load Score:</strong> <span id="displayScore">0</span> / 180</p>
             <p class="metric-item"><strong id="vectorLabel">Primary Focus Vector:</strong> <span id="displayVector">GENERAL</span></p>
@@ -174,16 +175,14 @@
                 <input type="tel" id="patientPhone" placeholder="Enter your phone number" required>
             </div>
 
-            <!-- Dynamic 2-Month Calendar Date & Slot Picker -->
-            <div class="slot-heading" id="slotTitle">Select Appointment Date & Available Time Slot:</div>
+            <div class="slot-heading" id="slotTitle">Select Appointment Date & Time Slot:</div>
             
             <div>
-                <label for="appointmentDate" style="font-size: 13px; color: #555; display: block; margin-bottom: 5px;">Choose Date (Up to 2 months out):</label>
                 <input type="date" id="appointmentDate" required />
             </div>
 
-            <div id="slotsContainer" class="slots-grid">
-                <p class="placeholder-text" style="font-size: 13px; color: #888;">Please pick a date above to load open time slots.</p>
+            <div id="slotsContainer" class="slots-grid" style="margin-top: 10px;">
+                <p class="placeholder-text" style="font-size: 13px; color: #888; margin: 0;">Please pick a date above to load open time slots.</p>
             </div>
 
             <button type="submit" class="submit-button" id="bookBtn">Proceed to Pay & Book (₹499)</button>
@@ -196,23 +195,19 @@
 
         <div id="successBox" class="success-box">
             <h2 id="successTitle">Payment & Consultation Confirmed!</h2>
-            <p id="successDesc">Your payment was successful and securely saved. Click below to notify our clinic network coordinator instantly on WhatsApp.</p>
+            <p id="successDesc">Your payment was successful and securely saved. Click below to notify our network coordinator instantly on WhatsApp.</p>
             <p class="slot-highlight" id="confirmedSlotText">📌 Selected Slot</p>
             
-            <!-- Direct Safe WhatsApp Alert Button -->
             <a id="whatsappAlertBtn" href="#" target="_blank" style="display: inline-block; background-color: #25D366; color: white; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 10px;">
                 💬 Send Booking Details to Network WhatsApp
             </a>
         </div>
     </div>
 
-    <!-- Main Logic & Calendar Module Integration -->
+    <!-- Integrated Firebase & Calendar Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-        
-        // Import your modularized calendar functions and variables
-        import { initCalendar, getSelectedSlot, getSelectedDate } from "./calendar.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBXD3yyuKWNsn4bAZaLBrXucl_9Z-eauF0",
@@ -226,79 +221,117 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Initialize the calendar widget on page load
+        const MASTER_SLOTS = [
+            "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", 
+            "11:00 AM", "11:30 AM", "04:00 PM", "04:30 PM", "05:00 PM"
+        ];
+
+        let selectedTimeSlot = null;
+        let selectedAppointmentDate = null;
+
+        // Initialize Calendar & Restrictions
+        function initCalendar() {
+            const dateInput = document.getElementById("appointmentDate");
+            const slotsContainer = document.getElementById("slotsContainer");
+
+            if (!dateInput || !slotsContainer) return;
+
+            // Restrict Date Picker (Today up to 2 months from now)
+            const today = new Date();
+            const maxDate = new Date();
+            maxDate.setMonth(today.getMonth() + 2);
+
+            dateInput.min = formatDateISO(today);
+            dateInput.max = formatDateISO(maxDate);
+
+            dateInput.addEventListener("change", async (e) => {
+                selectedAppointmentDate = e.target.value;
+                if (!selectedAppointmentDate) {
+                    slotsContainer.innerHTML = '<p class="placeholder-text" style="font-size: 13px; color: #888; margin: 0;">Please pick a valid date above to load open time slots.</p>';
+                    selectedTimeSlot = null;
+                    return;
+                }
+
+                slotsContainer.innerHTML = '<p style="font-size: 13px; color: #555; margin: 0;">Loading available slots...</p>';
+                selectedTimeSlot = null;
+                
+                const bookedSlots = await fetchBookedSlotsForDate(selectedAppointmentDate);
+                renderSlotUI(slotsContainer, bookedSlots);
+            });
+        }
+
+        function formatDateISO(d) {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        async function fetchBookedSlotsForDate(dateStr) {
+            try {
+                const q = query(
+                    collection(db, "teleconsult_bookings"),
+                    where("date", "==", dateStr),
+                    where("status", "==", "confirmed")
+                );
+                const snapshot = await getDocs(q);
+                const booked = [];
+                snapshot.forEach(doc => booked.push(doc.data().timeSlot));
+                return booked;
+            } catch (err) {
+                console.error("Error fetching slots:", err);
+                return [];
+            }
+        }
+
+        function renderSlotUI(slotsContainer, bookedSlots) {
+            slotsContainer.innerHTML = "";
+            selectedTimeSlot = null;
+
+            MASTER_SLOTS.forEach(slot => {
+                const isBooked = bookedSlots.includes(slot);
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "slot-btn";
+                btn.textContent = slot;
+
+                if (isBooked) {
+                    btn.disabled = true;
+                    btn.title = "This slot is already booked";
+                } else {
+                    btn.addEventListener("click", () => {
+                        document.querySelectorAll(".slot-btn").forEach(b => b.classList.remove("selected"));
+                        btn.classList.add("selected");
+                        selectedTimeSlot = slot;
+                    });
+                }
+
+                slotsContainer.appendChild(btn);
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             initCalendar();
         });
 
         const urlParams = new URLSearchParams(window.location.search);
-        const lang = urlParams.get('lang') || 'en';
         const score = urlParams.get('score') || '0';
         const vector = urlParams.get('vector') || 'GENERAL';
 
         document.getElementById('displayScore').innerText = score;
         document.getElementById('displayVector').innerText = vector;
 
-        const content = {
-            en: {
-                title: "Clinical Teleconsultation Booking",
-                subtitle: "Based on your assessment score, our clinical team recommends a virtual consultation to review your structural and mechanical load vectors.",
-                fulfillmentText: "🏥 Teleconsultation services fulfilled via Fasciamax Shatvayu Pvt Ltd Partner Network.",
-                scoreLabel: "Total Load Score:",
-                vectorLabel: "Primary Focus Vector:",
-                feeLabel: "Consultation Fee:",
-                slotTitle: "Select Appointment Date & Available Time Slot:",
-                namePlaceholder: "Enter your full name",
-                phonePlaceholder: "Enter your phone number",
-                bookBtn: "Proceed to Pay & Book (₹499)",
-                disclaimerText: 'By proceeding, you agree to our <a href="/disclaimer.html" target="_blank" style="color: #2980B9; text-decoration: underline;">Teleconsultation Medical Disclaimer</a>.',
-                successTitle: "Payment & Consultation Confirmed!",
-                successDesc: "Your payment was successful. Click below to notify our clinic network coordinator instantly on WhatsApp."
-            },
-            as: {
-                title: "ক্লিনিকাল টেলিকনসল্টেচন বুকিং",
-                subtitle: "আপোনাৰ মূল্যায়ন স্ক'ৰৰ ওপਰত ভিত্তি কৰি, আমাৰ চিকিৎসালয় দলে আপোনাৰ গঠনগত আৰু যান্ত্ৰিক ল'ড ভেক্তৰসমূহ পৰীক্ষা কৰিবলৈ এক ভাৰ্চুৱেল পৰামৰ্শৰ পৰামৰ্শ দিছে।",
-                fulfillmentText: "🏥 টেলিকনসল্টেচন সেৱাসমূহ Fasciamax Shatvayu Pvt Ltd অংশীদাৰ নেটৱৰ্কৰ জৰিয়তে পৰিচালিত।",
-                scoreLabel: "মুঠ ল'ড স্ক'ৰ:",
-                vectorLabel: "প্ৰধান লক্ষ্য ভেক্তৰ:",
-                feeLabel: "পৰামৰ্শ মাছুল:",
-                slotTitle: "তাৰিখ আৰু উপলব্ধ সময় বাছনি কৰক:",
-                namePlaceholder: "আপোনাৰ সম্পূৰ্ণ নাম লিখক",
-                phonePlaceholder: "আপোনাৰ ফোন নম্বৰ লিখক",
-                bookBtn: "পেমেন্ট কৰি বুক কৰক (₹499)",
-                disclaimerText: 'আগবাঢ়ি যোৱাৰ দ্বাৰা, আপুনি আমাৰ <a href="/disclaimer.html" target="_blank" style="color: #2980B9; text-decoration: underline;">টেলিকনসল্টেচন চিকিৎসা স্বীকাৰোক্তি (Disclaimer)</a> ত সন্মতি জনাইছে।',
-                successTitle: "পেমেন্ট আৰু পৰামৰ্শ নিশ্চিত হ’ল!",
-                successDesc: "আপোনাৰ পেমেন্ট সফল হৈছে। তলত ক্লিক কৰি WhatsApp যোগে আমাৰ নেটৱৰ্ক সমন্বয়কৰ ওচৰলৈ বিৱৰণ পঠিয়াওক।"
-            }
-        };
-
-        const t = content[lang] || content.en;
-
-        document.getElementById('title').innerText = t.title;
-        document.getElementById('subtitle').innerText = t.subtitle;
-        document.getElementById('fulfillmentText').innerText = t.fulfillmentText;
-        document.getElementById('scoreLabel').innerText = t.scoreLabel;
-        document.getElementById('vectorLabel').innerText = t.vectorLabel;
-        document.getElementById('feeLabel').innerText = t.feeLabel;
-        document.getElementById('slotTitle').innerText = t.slotTitle;
-        document.getElementById('patientName').placeholder = t.namePlaceholder;
-        document.getElementById('patientPhone').placeholder = t.phonePlaceholder;
-        document.getElementById('bookBtn').innerText = t.bookBtn;
-        document.getElementById('disclaimerText').innerHTML = t.disclaimerText;
-        document.getElementById('successTitle').innerText = t.successTitle;
-        document.getElementById('successDesc').innerText = t.successDesc;
-
-        // Handle Form Submission & Razorpay trigger
+        // Form submission & Razorpay trigger
         document.getElementById('bookingForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const name = document.getElementById('patientName').value;
             const phone = document.getElementById('patientPhone').value;
             
-            const chosenDate = getSelectedDate();
-            const chosenSlot = getSelectedSlot();
+            const chosenDate = selectedAppointmentDate;
+            const chosenSlot = selectedTimeSlot;
 
             if (!chosenDate || !chosenSlot) {
-                alert(lang === 'as' ? "অনুগ্ৰহ কৰি তাৰিখ আৰু এটা সঠিক সময় বাছনি কৰক।" : "Please choose a date and select an available time slot.");
+                alert("Please select both a valid appointment date and an available time slot.");
                 return;
             }
 
@@ -309,15 +342,15 @@
                 "amount": 49900,
                 "currency": "INR",
                 "name": "Fasciamax Shatvayu Pvt Ltd",
-                "description": "Teleconsultation Fee (" + vector + ")",
+                "description": `Virtual Teleconsultation (${vector})`,
                 "handler": async function (response) {
                     try {
-                        // 1. Save booking to Firestore collection 'bookings'
-                        await addDoc(collection(db, "bookings"), {
+                        await addDoc(collection(db, "teleconsult_bookings"), {
                             name: name,
                             phone: phone,
                             score: score,
                             vector: vector,
+                            serviceType: "teleconsult",
                             date: chosenDate,
                             timeSlot: chosenSlot,
                             amount: 499,
@@ -327,10 +360,9 @@
                             createdAt: serverTimestamp()
                         });
 
-                        // 2. Prepare safe WhatsApp link for manual button click
                         const networkWhatsApp = "919395503196";
                         const message = encodeURIComponent(
-                            `*New Teleconsultation Booking (Fasciamax Shatvayu Network)* 🏥\n\n` +
+                            `*New Teleconsultation Booking!* 🏥\n\n` +
                             `👤 Name: ${name}\n` +
                             `📞 Phone: ${phone}\n` +
                             `📅 Date: ${chosenDate}\n` +
@@ -342,7 +374,6 @@
                         const whatsappUrl = `https://wa.me/${networkWhatsApp}?text=${message}`;
                         document.getElementById('whatsappAlertBtn').href = whatsappUrl;
 
-                        // 3. Update view UI for the user securely
                         document.getElementById('bookingForm').style.display = 'none';
                         document.getElementById('successBox').style.display = 'block';
                         document.getElementById('confirmedSlotText').innerText = `📌 ${fullSlotString} | Payment ID: ${response.razorpay_payment_id}`;

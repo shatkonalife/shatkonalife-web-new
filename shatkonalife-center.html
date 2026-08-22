@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shatkona Center - Physical Consultations | Tanman Physiotherapy Clinic</title>
+    <title>Authorized Partner Network - Physical Consultations</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -22,27 +22,201 @@
             padding: 35px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-sizing: border-box;
         }
         h1 { color: #1A5276; font-size: 24px; margin-top: 0; }
         p { color: #555555; line-height: 1.5; font-size: 14px; }
-        .clinic-info { background: #EBF5FB; padding: 15px; border-radius: 8px; border-left: 4px solid #2980B9; margin: 20px 0; }
-        .btn { display: block; background: #27AE60; color: white; text-align: center; padding: 14px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 20px; }
-        .btn:hover { background: #219653; }
+        .form-group {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #34495E;
+            margin-bottom: 6px;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #BDC3C7;
+            font-size: 15px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        .clinic-info { 
+            background: #EBF5FB; 
+            padding: 15px; 
+            border-radius: 8px; 
+            border-left: 4px solid #2980B9; 
+            margin: 20px 0; 
+        }
+        .btn { 
+            display: block; 
+            background: #25D366; 
+            color: white; 
+            text-align: center; 
+            padding: 14px; 
+            border-radius: 6px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            margin-top: 20px; 
+        }
+        .btn:hover { background: #22bf5b; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Shatkona Center Physical Booking</h1>
-        <p>Book an in-person clinical evaluation, manual therapy, or structural vector assessment at our primary physical center.</p>
+        <h1>Authorized Partner Network - Physical Consultations</h1>
+        <p>Book an in-person clinical evaluation, manual therapy, or structural vector assessment at an authorized Fasciamax Shatvayu Partner Network clinic.</p>
         
-        <div class="clinic-info">
-            <h3 style="margin-top:0; color:#1A5276;">Tanman Physiotherapy Clinic</h3>
-            <p style="margin-bottom:0;">📍 In-Person Center Consultation<br>🕒 Mon - Sat: 9:00 AM - 7:00 PM<br></p>
+        <!-- State Picker -->
+        <div class="form-group">
+            <label for="stateSelect">1. Select State:</label>
+            <select id="stateSelect" onchange="onStateChange()">
+                <option value="">-- Choose State --</option>
+                <option value="Assam">Assam</option>
+                <option value="Goa">Goa</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Manipur">Manipur</option>
+            </select>
         </div>
 
-        <p>To schedule your physical appointment slot, message our clinic coordinator directly on WhatsApp:</p>
-        
-        <a href="https://wa.me/919395503196?text=Hi,%20I%20want%20to%20book%20a%20physical%20consultation%20at%20Tanman%20Physiotherapy%20Clinic." class="btn" target="_blank">Book Physical Slot via WhatsApp</a>
+        <!-- City Picker -->
+        <div class="form-group">
+            <label for="citySelect">2. Select City:</label>
+            <select id="citySelect" onchange="onCityChange()" disabled>
+                <option value="">-- Choose State First --</option>
+            </select>
+        </div>
+
+        <!-- Clinic Picker -->
+        <div class="form-group">
+            <label for="clinicSelect">3. Select Center:</label>
+            <select id="clinicSelect" onchange="onClinicChange()" disabled>
+                <option value="">-- Choose City First --</option>
+            </select>
+        </div>
+
+        <div class="clinic-info">
+            <h3 id="clinicNameDisplay" style="margin-top:0; color:#1A5276;">Please select your region above</h3>
+            <p id="clinicDescDisplay" style="margin-bottom:0;">📍 In-Person Center Consultation<br>🕒 Mon - Sat: 9:00 AM - 7:00 PM</p>
+        </div>
+
+        <a id="whatsappBookingBtn" href="#" class="btn" target="_blank" style="display: none;">
+            💬 Book Physical Slot via WhatsApp
+        </a>
     </div>
+
+    <script>
+        // Master database of your partner network locations
+        const networkData = {
+            "Assam": {
+                "Guwahati": [
+                    { name: "Tanman Physiotherapy Clinic", address: "Guwahati, Assam", phone: "919395503196" }
+                ]
+            },
+            "Goa": {
+                "Goa": [
+                    { name: "Sushila Physiotherapy Clinic", address: "Goa", phone: "919395503196" }
+                ]
+            },
+            "Karnataka": {
+                "Bangalore": [
+                    { name: "Aagun Physiotherapy Clinic", address: "Bangalore, Karnataka", phone: "919395503196" }
+                ]
+            },
+            "Manipur": {
+                "Imphal": [
+                    { name: "Kaka Physiotherapy Clinic", address: "Imphal, Manipur", phone: "919395503196" }
+                ]
+            }
+        };
+
+        function onStateChange() {
+            const stateSelect = document.getElementById('stateSelect');
+            const citySelect = document.getElementById('citySelect');
+            const clinicSelect = document.getElementById('clinicSelect');
+            
+            const selectedState = stateSelect.value;
+
+            // Reset dependent dropdowns
+            citySelect.innerHTML = '<option value="">-- Choose City --</option>';
+            clinicSelect.innerHTML = '<option value="">-- Choose City First --</option>';
+            citySelect.disabled = true;
+            clinicSelect.disabled = true;
+            resetDisplay();
+
+            if (selectedState && networkData[selectedState]) {
+                const cities = Object.keys(networkData[selectedState]);
+                cities.forEach(city => {
+                    const opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    citySelect.appendChild(opt);
+                });
+                citySelect.disabled = false;
+            }
+        }
+
+        function onCityChange() {
+            const stateSelect = document.getElementById('stateSelect');
+            const citySelect = document.getElementById('citySelect');
+            const clinicSelect = document.getElementById('clinicSelect');
+
+            const selectedState = stateSelect.value;
+            const selectedCity = citySelect.value;
+
+            clinicSelect.innerHTML = '<option value="">-- Choose Center --</option>';
+            clinicSelect.disabled = true;
+            resetDisplay();
+
+            if (selectedState && selectedCity && networkData[selectedState][selectedCity]) {
+                const clinics = networkData[selectedState][selectedCity];
+                clinics.forEach((clinic, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = index;
+                    opt.textContent = clinic.name;
+                    clinicSelect.appendChild(opt);
+                });
+                clinicSelect.disabled = false;
+            }
+        }
+
+        function onClinicChange() {
+            const stateSelect = document.getElementById('stateSelect');
+            const citySelect = document.getElementById('citySelect');
+            const clinicSelect = document.getElementById('clinicSelect');
+
+            const selectedState = stateSelect.value;
+            const selectedCity = citySelect.value;
+            const clinicIndex = clinicSelect.value;
+
+            if (clinicIndex === "") {
+                resetDisplay();
+                return;
+            }
+
+            const clinic = networkData[selectedState][selectedCity][clinicIndex];
+
+            // Update UI card
+            document.getElementById('clinicNameDisplay').innerText = clinic.name;
+            document.getElementById('clinicDescDisplay').innerHTML = `📍 Location: ${clinic.address}<br>🕒 Mon - Sat: 9:00 AM - 7:00 PM`;
+
+            // Update WhatsApp link & show button
+            const message = encodeURIComponent(`Hi, I would like to book a physical consultation at ${clinic.name}, ${clinic.address}.`);
+            const btn = document.getElementById('whatsappBookingBtn');
+            btn.href = `https://wa.me/${clinic.phone}?text=${message}`;
+            btn.style.display = "block";
+        }
+
+        function resetDisplay() {
+            document.getElementById('clinicNameDisplay').innerText = "Please select your region above";
+            document.getElementById('clinicDescDisplay').innerHTML = "📍 In-Person Center Consultation<br>🕒 Mon - Sat: 9:00 AM - 7:00 PM";
+            document.getElementById('whatsappBookingBtn').style.display = "none";
+        }
+    </script>
 </body>
 </html>
