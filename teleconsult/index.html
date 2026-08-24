@@ -193,8 +193,8 @@
 </head>
 <body>
 
-    <!-- Floating Home Return Button -->
-    <a href="/" class="back-to-home">
+    <!-- Floating Home Return Button with ID for dynamic reference routing -->
+    <a href="/" id="home-button-id" class="back-to-home">
         &larr; Home
     </a>
 
@@ -275,10 +275,26 @@
         </div>
     </div>
 
-    <!-- Integrated Firebase & Calendar Script -->
+    <!-- Integrated Firebase, Calendar & Referral Routing Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+        // Dynamic Home Button Redirect based on URL parameters
+        document.addEventListener("DOMContentLoaded", function() {
+            const homeButton = document.querySelector('#home-button-id'); 
+            
+            if (!homeButton) return;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const referralSource = urlParams.get('ref');
+
+            if (referralSource === 'somatic_quiz') {
+                homeButton.href = 'https://www.somaticbharat.org'; 
+            } else {
+                homeButton.href = 'https://shatkonalife.com';
+            }
+        });
 
         const firebaseConfig = {
             apiKey: "AIzaSyBXD3yyuKWNsn4bAZaLBrXucl_9Z-eauF0",
