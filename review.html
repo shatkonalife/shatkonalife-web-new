@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shatkona Life - Rate Your Consultation</title>
+    <style>
+        body { font-family: sans-serif; background: #F8F9FA; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 90vh; margin: 0; }
+        .box { background: white; max-width: 450px; width: 100%; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { color: #1A5276; font-size: 20px; margin-top: 0; }
+        p { font-size: 13px; color: #555; line-height: 1.4; }
+        label { font-size: 12px; font-weight: bold; color: #333; display: block; margin-top: 10px; }
+        select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { background: #27AE60; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="box" id="mainContainer">
+        <h2>Rate Your Consultation</h2>
+        <p id="loadingText">Verifying your session details...</p>
+
+        <form id="reviewForm" style="display: none;">
+            <p id="sessionDetails" style="color: #145A32; font-weight: bold; background: #D4EFDF; padding: 8px; border-radius: 4px;"></p>
+            
+            <label>Rating:</label>
+            <select id="rating" required>
+                <option value="5">★★★★★ (5/5 - Excellent)</option>
+                <option value="4">★★★★☆ (4/5 - Very Good)</option>
+                <option value="3">★★★☆☆ (3/5 - Average)</option>
+                <option value="2">★★☆☆☆ (2/5 - Fair)</option>
+                <option value="1">★☆☆☆☆ (1/5 - Poor)</option>
+            </select>
+
+            <label>Your Feedback / Comments:</label>
+            <textarea id="comment" rows="3" placeholder="Describe your experience with the care provider..." required></textarea>
+
+            <button type="submit">Submit Verified Review</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXD3yyuKWNsn4bAZaLBrXucl_9Z-eauF0",
+            authDomain: "shatkonalife-saas.firebaseapp.com",
+            projectId: "shatkonalife-saas",
+            storageBucket: "shatkonalife-saas.firebasestorage.app",
+            messagingSenderId: "491921572098",
+            appId: "1:491921572098:web:2d3db9b80a48cb89e6421b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookingId = urlParams.get('bookingId');
+
+        let fetchedData = null;
+
+        async function verifyBooking() {
+            if (!bookingId) {
+                document.getElementById('loadingText').innerText = "Invalid review link. No booking reference found.";
+                return;
+            }
+
+            try {
+                const docRef = doc(db, "teleconsult_bookings", bookingId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    fetchedData = docSnap.data();
+                    document.getElementById('loadingText').style.display = 'none';
+                    document.getElementById('sessionDetails').innerText = `Center: ${fetchedData.partnerCenter} (${fetchedData.city})\nDate: ${fetchedData.date} | ${fetchedData.timeSlot}`;
+                    document.getElementById('reviewForm').style.display = 'block';
+                } else {
+                    document.getElementById('loadingText').innerText = "Booking record not found or expired.";
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loadingText').innerText = "Error verifying session details.";
+            }
+        }
+
+        verifyBooking();
+
+        document.getElementById('reviewForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                await addDoc(collection(db, "teleconsult_reviews"), {
+                    partnerCenter: fetchedData.partnerCenter,
+                    patientName: fetchedData.name,
+                    rating: Number(document.getElementById('rating').value),
+                    comment: document.getElementById('comment').value,
+                    bookingId: bookingId,
+                    createdAt: serverTimestamp()
+                });
+
+                document.getElementById('mainContainer').innerHTML = `
+                    <h2 style="color: #145A32;">Thank You!</h2>
+                    <p style="color: #1E8449;">Your verified review has been successfully submitted and added to the provider's rating record.</p>
+                `;
+            } catch (err) {
+                console.error(err);
+                alert("Failed to save review. Please try again.");
+            }
+        });
+    </script>
+</body>
+</html>

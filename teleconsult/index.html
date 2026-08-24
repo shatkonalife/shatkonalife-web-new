@@ -9,13 +9,14 @@
     <style>
         body {
             margin: 0;
-            padding: 0;
+            padding: 20px;
             min-height: 100vh;
             background-color: #F8F9FA;
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            box-sizing: border-box;
         }
         .card {
             background-color: #FFFFFF;
@@ -25,7 +26,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             box-sizing: border-box;
-            margin: 20px;
+            margin: 20px 0;
         }
         h1 {
             font-size: 24px;
@@ -65,7 +66,18 @@
             flex-direction: column;
             gap: 15px;
         }
-        input {
+        .form-group {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #34495E;
+            margin-bottom: 6px;
+        }
+        input, select {
             width: 100%;
             padding: 12px;
             border-radius: 6px;
@@ -123,6 +135,9 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+        }
+        .submit-button:hover {
+            background-color: #219653;
         }
         .success-box {
             background-color: #D4EFDF;
@@ -205,19 +220,45 @@
                 <input type="tel" id="patientPhone" placeholder="Enter your phone number" required>
             </div>
 
-            <div class="slot-heading" id="slotTitle">Select Appointment Date & Time Slot:</div>
+            <!-- Regional Partner Network Pickers -->
+            <div class="form-group">
+                <label for="stateSelect">Select State / Region:</label>
+                <select id="stateSelect" onchange="onStateChange()" required>
+                    <option value="">-- Choose State --</option>
+                    <option value="Assam">Assam</option>
+                    <option value="Goa">Goa</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Manipur">Manipur</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="citySelect">Select City:</label>
+                <select id="citySelect" onchange="onCityChange()" disabled required>
+                    <option value="">-- Choose State First --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="clinicSelect">Select Partner Center:</label>
+                <select id="clinicSelect" disabled required>
+                    <option value="">-- Choose City First --</option>
+                </select>
+            </div>
+
+            <div class="slot-heading" id="slotTitle" style="margin-top: 10px;">Select Appointment Date & Time Slot:</div>
             
             <div>
                 <input type="date" id="appointmentDate" required />
             </div>
 
-            <div id="slotsContainer" class="slots-grid" style="margin-top: 10px;">
+            <div id="slotsContainer" class="slots-grid" style="margin-top: 5px;">
                 <p class="placeholder-text" style="font-size: 13px; color: #888; margin: 0;">Please pick a date above to load open time slots.</p>
             </div>
 
             <button type="submit" class="submit-button" id="bookBtn">Proceed to Pay & Book (₹499)</button>
 
-            <p id="disclaimerText" style="font-size: 12px; color: #666; text-align: center; margin-top: 10px; margin-bottom: 0;">
+            <p id="disclaimerText" style="font-size: 12px; color: #666; text-align: center; margin-top: 5px; margin-bottom: 0;">
                 By proceeding, you agree to our 
                 <a href="/disclaimer.html" target="_blank" style="color: #2980B9; text-decoration: underline;">Teleconsultation Medical Disclaimer</a>.
             </p>
@@ -251,6 +292,78 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Master database of your partner network locations
+        const networkData = {
+            "Assam": {
+                "Guwahati": [
+                    { name: "Tanman Physiotherapy Clinic", address: "Guwahati, Assam" }
+                ]
+            },
+            "Goa": {
+                "Goa": [
+                    { name: "Sushila Physiotherapy Clinic", address: "Goa" }
+                ]
+            },
+            "Karnataka": {
+                "Bangalore": [
+                    { name: "Aagun Physiotherapy Clinic", address: "Bangalore, Karnataka" }
+                ]
+            },
+            "Manipur": {
+                "Imphal": [
+                    { name: "Kaka Physiotherapy Clinic", address: "Imphal, Manipur" }
+                ]
+            }
+        };
+
+        // Make functions globally available for inline onchange events
+        window.onStateChange = function() {
+            const stateSelect = document.getElementById('stateSelect');
+            const citySelect = document.getElementById('citySelect');
+            const clinicSelect = document.getElementById('clinicSelect');
+            
+            const selectedState = stateSelect.value;
+
+            citySelect.innerHTML = '<option value="">-- Choose City --</option>';
+            clinicSelect.innerHTML = '<option value="">-- Choose City First --</option>';
+            citySelect.disabled = true;
+            clinicSelect.disabled = true;
+
+            if (selectedState && networkData[selectedState]) {
+                const cities = Object.keys(networkData[selectedState]);
+                cities.forEach(city => {
+                    const opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    citySelect.appendChild(opt);
+                });
+                citySelect.disabled = false;
+            }
+        };
+
+        window.onCityChange = function() {
+            const stateSelect = document.getElementById('stateSelect');
+            const citySelect = document.getElementById('citySelect');
+            const clinicSelect = document.getElementById('clinicSelect');
+
+            const selectedState = stateSelect.value;
+            const selectedCity = citySelect.value;
+
+            clinicSelect.innerHTML = '<option value="">-- Choose Center --</option>';
+            clinicSelect.disabled = true;
+
+            if (selectedState && selectedCity && networkData[selectedState][selectedCity]) {
+                const clinics = networkData[selectedState][selectedCity];
+                clinics.forEach((clinic, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = clinic.name;
+                    opt.textContent = clinic.name;
+                    clinicSelect.appendChild(opt);
+                });
+                clinicSelect.disabled = false;
+            }
+        };
+
         const MASTER_SLOTS = [
             "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", 
             "11:00 AM", "11:30 AM", "04:00 PM", "04:30 PM", "05:00 PM"
@@ -259,14 +372,12 @@
         let selectedTimeSlot = null;
         let selectedAppointmentDate = null;
 
-        // Initialize Calendar & Restrictions
         function initCalendar() {
             const dateInput = document.getElementById("appointmentDate");
             const slotsContainer = document.getElementById("slotsContainer");
 
             if (!dateInput || !slotsContainer) return;
 
-            // Restrict Date Picker (Today up to 2 months from now)
             const today = new Date();
             const maxDate = new Date();
             maxDate.setMonth(today.getMonth() + 2);
@@ -356,6 +467,9 @@
             event.preventDefault();
             const name = document.getElementById('patientName').value;
             const phone = document.getElementById('patientPhone').value;
+            const state = document.getElementById('stateSelect').value;
+            const city = document.getElementById('citySelect').value;
+            const clinic = document.getElementById('clinicSelect').value;
             
             const chosenDate = selectedAppointmentDate;
             const chosenSlot = selectedTimeSlot;
@@ -378,6 +492,9 @@
                         await addDoc(collection(db, "teleconsult_bookings"), {
                             name: name,
                             phone: phone,
+                            state: state,
+                            city: city,
+                            partnerCenter: clinic,
                             score: score,
                             vector: vector,
                             serviceType: "teleconsult",
@@ -395,6 +512,8 @@
                             `*New Teleconsultation Booking!* 🏥\n\n` +
                             `👤 Name: ${name}\n` +
                             `📞 Phone: ${phone}\n` +
+                            `📍 Region: ${city}, ${state}\n` +
+                            `🏥 Center: ${clinic}\n` +
                             `📅 Date: ${chosenDate}\n` +
                             `📌 Slot: ${chosenSlot}\n` +
                             `⚡ Vector: ${vector} (Score: ${score})\n` +
@@ -406,7 +525,7 @@
 
                         document.getElementById('bookingForm').style.display = 'none';
                         document.getElementById('successBox').style.display = 'block';
-                        document.getElementById('confirmedSlotText').innerText = `📌 ${fullSlotString} | Payment ID: ${response.razorpay_payment_id}`;
+                        document.getElementById('confirmedSlotText').innerText = `📌 ${fullSlotString} | Center: ${clinic} (${city})`;
 
                     } catch (e) {
                         console.error("Error saving booking to Firestore: ", e);
